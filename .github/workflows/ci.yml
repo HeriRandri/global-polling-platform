@@ -1,0 +1,53 @@
+name: CI Local
+
+on:
+  push:
+    branches: [ "master" ]   # à chaque push sur master
+  pull_request:              # ou quand tu fais une PR
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:   # ça lance MySQL + Redis dans le pipeline
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: polling
+          MYSQL_USER: dev
+          MYSQL_PASSWORD: devpass
+        ports:
+          - 3306:3306
+
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      # 1) Récupère ton code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2) Build backend
+      - name: Build Backend
+        run: docker build -t backend ./backend/api
+
+      # 3) Build frontend
+      - name: Build Frontend
+        run: docker build -t frontend ./frontend
+
+      # 4) Lancer les tests backend
+      - name: Test Backend
+        run: |
+          cd backend/api
+          npm install
+          npm run test
+
+      # 5) Lancer les tests frontend
+      - name: Test Frontend
+        run: |
+          cd frontend
+          npm install
+          npm run test
