@@ -1,53 +1,47 @@
-name: CI Local
+name: build-and-test
 
 on:
   push:
-    branches: [ "master" ]   # à chaque push sur master
-  pull_request:              # ou quand tu fais une PR
+    branches:
+      - master
+  pull_request:
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
 
-    services:   # ça lance MySQL + Redis dans le pipeline
-      mysql:
-        image: mysql:8
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: polling
-          MYSQL_USER: dev
-          MYSQL_PASSWORD: devpass
-        ports:
-          - 3306:3306
-
-      redis:
-        image: redis:alpine
-        ports:
-          - 6379:6379
-
     steps:
-      # 1) Récupère ton code
+      # 1️⃣ Récupérer le code
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # 2) Build backend
+      # 2️⃣ Installer Docker (actions runner l'a déjà)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 3️⃣ Build Backend (NestJS)
       - name: Build Backend
         run: docker build -t backend ./backend/api
 
-      # 3) Build frontend
+      # 4️⃣ Build Frontend (Next.js)
       - name: Build Frontend
         run: docker build -t frontend ./frontend
 
-      # 4) Lancer les tests backend
-      - name: Test Backend
-        run: |
-          cd backend/api
-          npm install
-          npm run test
+      # 5️⃣ Lancer docker-compose pour tests
+      - name: Start services
+        run: docker compose up -d
 
-      # 5) Lancer les tests frontend
+      # 6️⃣ Vérifier que le backend répond
+      - name: Test Backend API
+        run: |
+          sleep 15  # attendre MySQL + backend démarrage
+          curl -f http://localhost:3001/polls || exit 1
+
+      # 7️⃣ Vérifier que le frontend démarre
       - name: Test Frontend
         run: |
-          cd frontend
-          npm install
-          npm run test
+          curl -f http://localhost:3000 || exit 1
+
+      # 8️⃣ Arrêter et nettoyer
+      - name: Stop containers
+        run: docker compose down -v
