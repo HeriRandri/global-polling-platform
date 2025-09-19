@@ -19,27 +19,31 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 3️⃣ Démarrer tout avec docker-compose
+      # 3️⃣ Build Backend (NestJS)
+      - name: Build Backend
+        run: docker build -t backend ./backend/api
+
+      # 4️⃣ Build Frontend (Next.js)
+      - name: Build Frontend
+        run: docker build -t frontend ./frontend
+
+      # 5️⃣ Lancer docker-compose pour tests
       - name: Start services
-        run: docker compose up -d --build
+        run: docker compose up -d
 
-      # 4️⃣ Attendre MySQL + backend + frontend
-      - name: Wait for services
-        run: sleep 30
-
-      # 5️⃣ Tester le backend dans le réseau docker
+      # 6️⃣ Vérifier que le backend répond
       - name: Test Backend API
         run: |
+          sleep 15  # attendre MySQL + backend démarrage
           docker run --rm --network=global-polling-platform_app-network curlimages/curl:8.5.0 \
-            curl -f http://backend:3001/polls
+            -f http://backend:3001/api/polls || exit 1
 
-      # 6️⃣ Tester le frontend dans le réseau docker
+      # 7️⃣ Vérifier que le frontend démarre
       - name: Test Frontend
         run: |
           docker run --rm --network=global-polling-platform_app-network curlimages/curl:8.5.0 \
-            curl -f http://frontend:3000
+            -f http://frontend:3000 || exit 1
 
-      # 7️⃣ Arrêter et nettoyer
+      # 8️⃣ Arrêter et nettoyer
       - name: Stop containers
-        if: always()
         run: docker compose down -v
