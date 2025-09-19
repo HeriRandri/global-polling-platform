@@ -36,7 +36,7 @@ jobs:
         run: |
           sleep 15  # attendre MySQL + backend démarrage
           docker run --rm --network=global-polling-platform_app-network curlimages/curl:8.5.0 \
-            -f http://backend:3001/api/polls || exit 1
+            -f http://backend:3001/polls || exit 1
 
       # 7️⃣ Vérifier que le frontend démarre
       - name: Test Frontend
