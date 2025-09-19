@@ -1,15 +1,17 @@
+# frontend/Dockerfile
 FROM node:18-slim
+
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --production
+
+# installe toutes les dépendances (incluant tailwind, postcss, etc.)
+RUN npm install
 
 COPY . .
 
-# Build Next.js (SSG/SSR)
+# build Next.js (SSG/SSR)
 RUN npm run build
 
-# Lancer Next.js en mode production
+# démarre Next.js en mode prod
 CMD ["npm", "run", "start"]
-
-EXPOSE 3000

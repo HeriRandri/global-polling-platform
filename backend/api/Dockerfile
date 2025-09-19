@@ -1,19 +1,17 @@
+# backend/api/Dockerfile
 FROM node:18-alpine
 
-# Créer dossier de travail
 WORKDIR /app
 
-# Installer dépendances
 COPY package*.json ./
-RUN npm install --production
 
-# Copier le code
+# installe toutes les dépendances (dev + prod)
+RUN npm install
+
 COPY . .
 
-# Compiler le code (NestJS → JS)
+# build du code TypeScript -> dist/
 RUN npm run build
 
-# Lancer le serveur
+# commande de démarrage (prod)
 CMD ["npm", "run", "start:prod"]
-
-EXPOSE 3001
