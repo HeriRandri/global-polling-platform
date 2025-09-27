@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Vote } from '../polls/vote.entity';
+import { Poll } from '../polls/poll.entity';
+import { Vote } from '../votes/vote.entity';
 
 @Entity()
 export class User {
@@ -9,6 +10,14 @@ export class User {
   @Column({ unique: true })
   email: string;
 
+  @Column()
+  passwordHash: string;
+
+  // 🔹 Relation : un utilisateur peut créer plusieurs sondages
+  @OneToMany(() => Poll, poll => poll.owner)
+  polls: Poll[];
+
+  // 🔹 Relation : un utilisateur peut voter plusieurs fois
   @OneToMany(() => Vote, vote => vote.user)
   votes: Vote[];
 }

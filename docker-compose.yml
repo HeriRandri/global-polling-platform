@@ -8,16 +8,16 @@ services:
       MYSQL_USER: dev
       MYSQL_PASSWORD: devpass
     volumes:
-      - mysql_data:/var/lib/mysql   # ✅ Persistance MySQL
+      - mysql_data:/var/lib/mysql  
     networks:
       - app-network
 
   redis:
     image: redis:alpine
     restart: always
-    command: ["redis-server", "--appendonly", "yes"]  # ✅ Active persistance Redis (AOF)
+    command: ["redis-server", "--appendonly", "yes"] 
     volumes:
-      - redis_data:/data            # ✅ Persistance Redis
+      - redis_data:/data            
     networks:
       - app-network
 
@@ -36,12 +36,14 @@ services:
       - redis
     networks:
       - app-network
+    ports:
+    - "3001:3001" 
 
   frontend:
     build: ./frontend
     restart: always
     environment:
-      NEXT_PUBLIC_API_URL: /api   # ✅ Appelle via Nginx
+      NEXT_PUBLIC_API_URL: /api   
     depends_on:
       - backend
     networks:
@@ -61,8 +63,8 @@ services:
       - app-network
 
 volumes:
-  mysql_data:   # ✅ Volume persistant pour MySQL
-  redis_data:   # ✅ Volume persistant pour Redis
+  mysql_data: 
+  redis_data: 
 
 networks:
   app-network:
